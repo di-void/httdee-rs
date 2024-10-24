@@ -1,6 +1,6 @@
 use std::{
     collections::HashMap,
-    io::{self, BufRead, BufReader, Write, Read},
+    io::{self, BufRead, BufReader, Read, Write},
     net::{IpAddr, Ipv4Addr, SocketAddr, TcpListener, TcpStream},
 };
 
@@ -61,10 +61,6 @@ pub struct Request {
     pub uri: String,
 }
 
-type HandlerClosure = dyn Fn(Request) -> (String, String);
-
-type Handler = Box<HandlerClosure>;
-
 #[derive(Eq, PartialEq, Hash)]
 enum HandlerMethods {
     Get(String),
@@ -76,16 +72,17 @@ pub struct RequestHandlers {
     not_found: Handler,
 }
 
+type Handler = fn(Request) -> (String, String);
+
 impl RequestHandlers {
     pub fn new() -> RequestHandlers {
         let handlers = HashMap::new();
-        let not_found: Handler =
-            Box::new(|req| {
-                let status = String::from("404 Not-Found");
-                println!("404: Not-Found. Route handler for {} undefined", req.uri);
+        let not_found = |req: Request| {
+            let status = String::from("404 Not-Found");
+            println!("404: Not-Found. Route handler for {} undefined", req.uri);
 
-                (status, format!("Route handler for {} undefined", req.uri))
-            });
+            (status, format!("Route handler for {} undefined", req.uri))
+        };
 
         RequestHandlers {
             handlers,
@@ -93,14 +90,14 @@ impl RequestHandlers {
         }
     }
 
-    pub fn get<F: Fn(Request) -> (String, String) + 'static>(&mut self, uri: &'static str, handler: F) {
+    pub fn get(&mut self, uri: &'static str, handler: Handler) {
         self.handlers
-            .insert(HandlerMethods::Get(String::from(uri)), Box::new(handler));
+            .insert(HandlerMethods::Get(String::from(uri)), handler);
     }
 
-    pub fn post<F: Fn(Request) -> (String, String) + 'static>(&mut self, uri: &'static str, handler: F) {
+    pub fn post(&mut self, uri: &'static str, handler: Handler) {
         self.handlers
-            .insert(HandlerMethods::Post(String::from(uri)), Box::new(handler));
+            .insert(HandlerMethods::Post(String::from(uri)), handler);
     }
 }
 
@@ -132,10 +129,12 @@ fn parse_request(mut stream: TcpStream) -> RequestMethods {
 
     let content_length = parse_content_length(&headers);
 
-    let mut body = vec![0; content_length]; 
+    let mut body = vec![0; content_length];
 
     if content_length > 0 {
-        buf_reader.read_exact(&mut body).expect("Something went wrong :(");
+        buf_reader
+            .read_exact(&mut body)
+            .expect("Something went wrong :(");
     }
 
     let body = String::from_utf8(body).unwrap();
@@ -155,7 +154,6 @@ fn parse_request(mut stream: TcpStream) -> RequestMethods {
 }
 
 fn parse_content_length(headers: &String) -> usize {
-
     for line in headers.lines() {
         if line.to_lowercase().starts_with("content-length:") {
             let length = line["content-length:".len()..].trim().parse().unwrap();
