@@ -5,14 +5,13 @@ use std::{
 };
 
 const HTTP_VERSION: &str = "HTTP/1.1";
+const CODE_PAIRS: [(u16, &str); 2] = [(200, "200 OK"), (404, "404 Not-Found")];
 
 pub struct HttDee {
     listener: TcpListener,
     port: u16,
     req_handlers: RequestHandlers,
 }
-
-const CODE_PAIRS: [(u16, &str); 2] = [(200, "200 OK"), (404, "404 Not-Found")];
 
 // Request
 #[derive(Debug)]
