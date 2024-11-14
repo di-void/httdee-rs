@@ -44,7 +44,6 @@ impl<'a> Response<'a> {
     }
 }
 
-
 impl HttDee {
     pub fn new(port: u16, req_handlers: RequestHandlers) -> io::Result<HttDee> {
         let socket = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(127, 0, 0, 1)), port);
@@ -70,13 +69,18 @@ impl HttDee {
 
             match parse_request(stream) {
                 RequestMethods::Get(uri, mut stream) => {
-                    let get_handler = self.req_handlers.handlers
+                    let get_handler = self
+                        .req_handlers
+                        .handlers
                         .get(&HandlerMethods::Get(uri.clone()))
                         .unwrap_or_else(|| nf_handler);
 
                     let request = Request { uri, body: None };
 
-                    let response = Response { stream: &mut stream, status_codes: &status_codes };
+                    let response = Response {
+                        stream: &mut stream,
+                        status_codes: &status_codes,
+                    };
 
                     get_handler(request, response);
                 }
