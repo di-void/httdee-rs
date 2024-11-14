@@ -4,11 +4,46 @@ use std::{
     net::{IpAddr, Ipv4Addr, SocketAddr, TcpListener, TcpStream},
 };
 
+const HTTP_VERSION: &str = "HTTP/1.1";
+
 pub struct HttDee {
     listener: TcpListener,
     port: u16,
     req_handlers: RequestHandlers,
 }
+
+const CODE_PAIRS: [(u16, &str); 2] = [(200, "200 OK"), (404, "404 Not-Found")];
+
+// Request
+#[derive(Debug)]
+pub struct Request {
+    // pub params  -- later
+    pub body: Option<String>,
+    pub uri: String,
+}
+
+// Response
+#[derive(Debug)]
+pub struct Response<'a> {
+    status_codes: &'a HashMap<u16, &'a str>,
+    pub stream: &'a mut TcpStream,
+}
+
+impl<'a> Response<'a> {
+    pub fn _json(&mut self) {
+        // return json response
+    }
+
+    pub fn text(&mut self, content: String, status: u16) {
+        let status = self.status_codes.get(&status).unwrap();
+
+        // format response
+        let response = format!("{HTTP_VERSION} {status}\r\n\r\n{content}");
+
+        self.stream.write_all(response.as_bytes()).unwrap();
+    }
+}
+
 
 impl HttDee {
     pub fn new(port: u16, req_handlers: RequestHandlers) -> io::Result<HttDee> {
@@ -23,7 +58,11 @@ impl HttDee {
     }
 
     pub fn start(&self) {
-        println!("Server is now listening on port: {}..", self.port);
+        println!("Server is listening on port: {}..", self.port);
+
+        // nf = not_found
+        let nf_handler = &self.req_handlers.not_found;
+        let status_codes: HashMap<_, _> = CODE_PAIRS.into_iter().collect();
 
         for stream in self.listener.incoming() {
             // todo: maybe handle errors later
@@ -31,34 +70,22 @@ impl HttDee {
 
             match parse_request(stream) {
                 RequestMethods::Get(uri, mut stream) => {
-                    let handler = self
-                        .req_handlers
-                        .handlers
+                    let get_handler = self.req_handlers.handlers
                         .get(&HandlerMethods::Get(uri.clone()))
-                        .unwrap_or_else(|| &self.req_handlers.not_found);
+                        .unwrap_or_else(|| nf_handler);
 
-                    let request = Request {
-                        uri,
-                        body: String::new(),
-                    };
+                    let request = Request { uri, body: None };
 
-                    let (status, resp) = handler(request);
-                    let response = format!("HTTP/1.1 {status}\r\n\r\n{resp}");
+                    let response = Response { stream: &mut stream, status_codes: &status_codes };
 
-                    stream.write_all(response.as_bytes()).unwrap();
+                    get_handler(request, response);
                 }
+
                 RequestMethods::Post(uri, _stream) => println!("POST URI: {:?}", uri),
                 _ => println!("HTTP Verb not supported"),
             }
         }
     }
-}
-
-#[derive(Debug)]
-pub struct Request {
-    // pub params   // later,
-    pub body: String,
-    pub uri: String,
 }
 
 #[derive(Eq, PartialEq, Hash)]
@@ -72,16 +99,16 @@ pub struct RequestHandlers {
     not_found: Handler,
 }
 
-type Handler = fn(Request) -> (String, String);
+type Handler = fn(Request, Response);
 
 impl RequestHandlers {
     pub fn new() -> RequestHandlers {
         let handlers = HashMap::new();
-        let not_found = |req: Request| {
-            let status = String::from("404 Not-Found");
+
+        let not_found: Handler = |req, mut res| {
             println!("404: Not-Found. Route handler for {} undefined", req.uri);
 
-            (status, format!("Route handler for {} undefined", req.uri))
+            res.text(format!("Route handler for {} undefined", req.uri), 404);
         };
 
         RequestHandlers {

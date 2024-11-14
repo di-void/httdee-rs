@@ -5,19 +5,17 @@ fn main() {
     let mut handlers = RequestHandlers::new();
 
     // GET request handlers..
-    handlers.get("/", |ctx| {
-        let status = String::from("200 OK");
-        println!("GET Request Context: {:?}", ctx);
+    handlers.get("/", |req, mut res| {
+        println!("GET Request Object: {:?}", req);
 
-        (status, String::from("GET work"))
+        res.text(String::from("GET Work!"), 200);
     });
 
     // POST request handlers..
-    handlers.post("/", |ctx| {
-        let status = String::from("200 OK");
-        println!("Do POST work: {:?}", ctx);
+    handlers.post("/", |req, mut res| {
+        println!("POST Request Object: {:?}", req);
 
-        (status, String::from("POST work"))
+        res.text(String::from("POST Work!"), 200);
     });
 
     // start server
@@ -28,4 +26,7 @@ fn main() {
         }
         _ => println!("Failed to bind Socket :("),
     }
+
+    // todo
+    // have json response method implemented on response struct
 }
