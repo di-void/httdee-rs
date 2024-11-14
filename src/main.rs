@@ -26,7 +26,4 @@ fn main() {
         }
         _ => println!("Failed to bind Socket :("),
     }
-
-    // todo
-    // have json response method implemented on response struct
 }
