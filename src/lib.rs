@@ -4,7 +4,7 @@ use std::{
     net::{IpAddr, Ipv4Addr, SocketAddr, TcpListener, TcpStream},
 };
 
-const HTTP_VERSION: &str = "HTTP/1.1";
+const HTTP_VERSION: &str = "1.1";
 const CODE_PAIRS: [(u16, &str); 2] = [(200, "200 OK"), (404, "404 Not-Found")];
 
 pub struct HttDee {
@@ -37,7 +37,7 @@ impl<'a> Response<'a> {
         let status = self.status_codes.get(&status).unwrap();
 
         // format response
-        let response = format!("{HTTP_VERSION} {status}\r\n\r\n{content}");
+        let response = format!("HTTP/{HTTP_VERSION} {status}\r\n\r\n{content}");
 
         self.stream.write_all(response.as_bytes()).unwrap();
     }
