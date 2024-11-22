@@ -3,6 +3,9 @@ use std::{
     io::{self, BufRead, BufReader, Read, Write},
     net::{IpAddr, Ipv4Addr, SocketAddr, TcpListener, TcpStream},
 };
+mod req_handlers;
+use req_handlers::HandlerMethods;
+pub use req_handlers::RequestHandlers;
 
 const HTTP_VERSION: &str = "1.1";
 const CODE_PAIRS: [(u16, &str); 2] = [(200, "200 OK"), (404, "404 Not-Found")];
@@ -88,46 +91,6 @@ impl HttDee {
                 _ => println!("HTTP Verb not supported"),
             }
         }
-    }
-}
-
-#[derive(Eq, PartialEq, Hash)]
-enum HandlerMethods {
-    Get(String),
-    Post(String),
-}
-
-pub struct RequestHandlers {
-    handlers: HashMap<HandlerMethods, Handler>,
-    not_found: Handler,
-}
-
-type Handler = fn(Request, Response);
-
-impl RequestHandlers {
-    pub fn new() -> RequestHandlers {
-        let handlers = HashMap::new();
-
-        let not_found: Handler = |req, mut res| {
-            println!("404: Not-Found. Route handler for {} undefined", req.uri);
-
-            res.text(format!("Route handler for {} undefined", req.uri), 404);
-        };
-
-        RequestHandlers {
-            handlers,
-            not_found,
-        }
-    }
-
-    pub fn get(&mut self, uri: &'static str, handler: Handler) {
-        self.handlers
-            .insert(HandlerMethods::Get(String::from(uri)), handler);
-    }
-
-    pub fn post(&mut self, uri: &'static str, handler: Handler) {
-        self.handlers
-            .insert(HandlerMethods::Post(String::from(uri)), handler);
     }
 }
 
