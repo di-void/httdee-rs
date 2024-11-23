@@ -7,7 +7,7 @@ mod req_handlers;
 use req_handlers::HandlerMethods;
 pub use req_handlers::RequestHandlers;
 
-const HTTP_VERSION: &str = "1.1";
+const HTTP_VERSION: f32 = 1.1;
 const CODE_PAIRS: [(u16, &str); 2] = [(200, "200 OK"), (404, "404 Not-Found")];
 
 pub struct HttDee {
