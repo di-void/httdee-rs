@@ -159,5 +159,17 @@ fn parse_req_line(headers: &String) -> [&str; 2] {
     let req_line = headers.lines().next().unwrap();
     let method_and_uri = req_line.split(' ').take(2).collect::<Vec<_>>();
 
-    method_and_uri[..].try_into().expect("req moving mad :(")
+    /*
+        https://doc.rust-lang.org/book/ch18-02-refutability.html
+
+        why this?
+
+        tldr;
+        destructuring is for arrays and not vecs because
+        it involves a fixed size to be guaranteed for the pattern to match
+    */
+
+    method_and_uri
+        .try_into()
+        .expect("oops! req line moving mad :(")
 }
