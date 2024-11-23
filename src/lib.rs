@@ -134,10 +134,7 @@ fn parse_request(mut stream: TcpStream) -> RequestMethods {
 
     println!("Request Body: {}", body);
 
-    // "GET / HTTP/1.1"
-    let req_line = headers.lines().next().unwrap();
-    let method_uri = req_line.split(' ').take(2).collect::<Vec<_>>();
-    let [method, uri] = method_uri[..].try_into().expect("req moving mad :(");
+    let [method, uri] = parse_req_line(&headers);
 
     match method {
         "GET" => RequestMethods::Get(uri.to_string(), stream),
@@ -155,4 +152,12 @@ fn parse_content_length(headers: &String) -> usize {
     }
 
     0
+}
+
+fn parse_req_line(headers: &String) -> [&str; 2] {
+    // "GET / HTTP/1.1"
+    let req_line = headers.lines().next().unwrap();
+    let method_and_uri = req_line.split(' ').take(2).collect::<Vec<_>>();
+
+    method_and_uri[..].try_into().expect("req moving mad :(")
 }
