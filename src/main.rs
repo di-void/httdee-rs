@@ -27,6 +27,3 @@ fn main() {
         _ => println!("Failed to bind Socket :("),
     }
 }
-
-// TODO: implement post handler method
-// TODO: integrate serde for serializing json for the json response method
