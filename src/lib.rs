@@ -37,14 +37,20 @@ impl HttDee {
 
         // nf = not_found
         let nf_handler = &self.req_handlers.not_found;
+        let unsupported_handler = &self.req_handlers.unsupported;
         let status_codes: HashMap<_, _> = CODE_PAIRS.into_iter().collect();
 
         for stream in self.listener.incoming() {
             // todo: maybe handle errors later
-            let stream = stream.unwrap();
+            let mut stream = stream.unwrap();
 
-            match parse_request(stream) {
-                RequestMethods::Get(uri, mut stream, body) => {
+            let response = Response {
+                stream: stream.try_clone().expect("Stream Clone Failed!"),
+                status_codes: &status_codes,
+            };
+
+            match parse_request(&mut stream) {
+                RequestMethods::Get(uri, body) => {
                     let get_handler = self
                         .req_handlers
                         .handlers
@@ -54,15 +60,10 @@ impl HttDee {
                     // body is None for now
                     let request = Request { uri, body };
 
-                    let response = Response {
-                        stream: &mut stream,
-                        status_codes: &status_codes,
-                    };
-
                     get_handler(request, response);
                 }
 
-                RequestMethods::Post(uri, mut stream, body) => {
+                RequestMethods::Post(uri, body) => {
                     let post_handler = self
                         .req_handlers
                         .handlers
@@ -72,14 +73,9 @@ impl HttDee {
                     // body is None for now
                     let request = Request { uri, body };
 
-                    let response = Response {
-                        stream: &mut stream,
-                        status_codes: &status_codes,
-                    };
-
                     post_handler(request, response);
                 }
-                _ => println!("HTTP Verb not supported"),
+                _ => unsupported_handler(response),
             }
         }
     }

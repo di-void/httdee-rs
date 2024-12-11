@@ -9,7 +9,7 @@ type Handler = fn(Request, Response);
 pub struct RequestHandlers {
     pub handlers: HashMap<HttpMethod, Handler>,
     pub not_found: Handler,
-    pub unsupported: Handler,
+    pub unsupported: fn(Response),
 }
 
 impl RequestHandlers {
@@ -22,7 +22,7 @@ impl RequestHandlers {
             res.text(format!("Route handler for {} undefined", req.uri), 404);
         };
 
-        let unsupported: Handler = |_req, mut res| {
+        let unsupported = |mut res: Response| {
             println!("Unsupported HTTP Verb");
 
             res.text(format!("Unsupported HTTP Verb"), 422);

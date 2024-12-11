@@ -20,7 +20,7 @@ pub struct Request {
 #[derive(Debug)]
 pub struct Response<'a> {
     pub(crate) status_codes: &'a HashMap<u16, &'a str>,
-    pub stream: &'a mut TcpStream,
+    pub stream: TcpStream,
 }
 
 impl<'a> Response<'a> {
@@ -44,13 +44,13 @@ pub enum HttpMethod {
 
 // TODO: find a way to eliminate this and use HttpMethod enum
 pub enum RequestMethods {
-    Get(String, TcpStream, Option<String>),
-    Post(String, TcpStream, Option<String>),
+    Get(String, Option<String>),
+    Post(String, Option<String>),
     Other,
 }
 
-pub fn parse_request(mut stream: TcpStream) -> RequestMethods {
-    let mut buf_reader = BufReader::new(&mut stream);
+pub fn parse_request(stream: &mut TcpStream) -> RequestMethods {
+    let mut buf_reader = BufReader::new(stream);
     let mut headers = String::new();
 
     // parse headers
@@ -85,8 +85,8 @@ pub fn parse_request(mut stream: TcpStream) -> RequestMethods {
     let [method, uri] = parse_req_line(&headers);
 
     match method {
-        "GET" => RequestMethods::Get(uri.to_string(), stream, body),
-        "POST" => RequestMethods::Post(uri.to_string(), stream, body),
+        "GET" => RequestMethods::Get(uri.to_string(), body),
+        "POST" => RequestMethods::Post(uri.to_string(), body),
         _ => RequestMethods::Other,
     }
 }
