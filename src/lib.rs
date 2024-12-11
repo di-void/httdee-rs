@@ -8,7 +8,11 @@ use std::{
     net::{IpAddr, Ipv4Addr, SocketAddr, TcpListener},
 };
 
-const CODE_PAIRS: [(u16, &str); 2] = [(200, "200 OK"), (404, "404 Not-Found")];
+const CODE_PAIRS: [(u16, &str); 3] = [
+    (200, "200 OK"),
+    (404, "404 Not-Found"),
+    (422, "422 Unprocessable-Content"),
+];
 
 pub struct HttDee {
     listener: TcpListener,
@@ -40,14 +44,15 @@ impl HttDee {
             let stream = stream.unwrap();
 
             match parse_request(stream) {
-                RequestMethods::Get(uri, mut stream) => {
+                RequestMethods::Get(uri, mut stream, body) => {
                     let get_handler = self
                         .req_handlers
                         .handlers
                         .get(&HttpMethod::Get(uri.clone()))
                         .unwrap_or_else(|| nf_handler);
 
-                    let request = Request { uri, body: None };
+                    // body is None for now
+                    let request = Request { uri, body };
 
                     let response = Response {
                         stream: &mut stream,
@@ -57,8 +62,23 @@ impl HttDee {
                     get_handler(request, response);
                 }
 
-                // TODO: implement post handler method
-                RequestMethods::Post(uri, _stream) => println!("POST URI: {:?}", uri),
+                RequestMethods::Post(uri, mut stream, body) => {
+                    let post_handler = self
+                        .req_handlers
+                        .handlers
+                        .get(&HttpMethod::Post(uri.clone()))
+                        .unwrap_or_else(|| nf_handler);
+
+                    // body is None for now
+                    let request = Request { uri, body };
+
+                    let response = Response {
+                        stream: &mut stream,
+                        status_codes: &status_codes,
+                    };
+
+                    post_handler(request, response);
+                }
                 _ => println!("HTTP Verb not supported"),
             }
         }

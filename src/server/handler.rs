@@ -1,6 +1,6 @@
 // request handlers
 
-use super::http::{Request, Response, HttpMethod};
+use super::http::{HttpMethod, Request, Response};
 use std::collections::HashMap;
 
 // handler method
@@ -9,6 +9,7 @@ type Handler = fn(Request, Response);
 pub struct RequestHandlers {
     pub handlers: HashMap<HttpMethod, Handler>,
     pub not_found: Handler,
+    pub unsupported: Handler,
 }
 
 impl RequestHandlers {
@@ -21,9 +22,16 @@ impl RequestHandlers {
             res.text(format!("Route handler for {} undefined", req.uri), 404);
         };
 
+        let unsupported: Handler = |_req, mut res| {
+            println!("Unsupported HTTP Verb");
+
+            res.text(format!("Unsupported HTTP Verb"), 422);
+        };
+
         RequestHandlers {
             handlers,
             not_found,
+            unsupported,
         }
     }
 

@@ -1,6 +1,10 @@
 // HTTP parsers, request and response logic
 
-use std::{collections::HashMap, net::TcpStream, io::{BufRead, BufReader, Read, Write}};
+use std::{
+    collections::HashMap,
+    io::{BufRead, BufReader, Read, Write},
+    net::TcpStream,
+};
 
 const HTTP_VERSION: f32 = 1.1;
 
@@ -20,12 +24,6 @@ pub struct Response<'a> {
 }
 
 impl<'a> Response<'a> {
-    pub fn _json(&mut self) {
-        // TODO: integrate serde for serializing json for the json response method
-
-        // return json response
-    }
-
     pub fn text(&mut self, content: String, status: u16) {
         let status = self.status_codes.get(&status).unwrap();
 
@@ -34,6 +32,8 @@ impl<'a> Response<'a> {
 
         self.stream.write_all(response.as_bytes()).unwrap();
     }
+
+    // TODO: add other response methods like json()
 }
 
 #[derive(Eq, PartialEq, Hash)]
@@ -44,8 +44,8 @@ pub enum HttpMethod {
 
 // TODO: find a way to eliminate this and use HttpMethod enum
 pub enum RequestMethods {
-    Get(String, TcpStream),
-    Post(String, TcpStream),
+    Get(String, TcpStream, Option<String>),
+    Post(String, TcpStream, Option<String>),
     Other,
 }
 
@@ -76,18 +76,17 @@ pub fn parse_request(mut stream: TcpStream) -> RequestMethods {
     if content_length > 0 {
         buf_reader
             .read_exact(&mut body)
-            .expect("Something went wrong :(");
+            .expect("Couldn't read body contents :(");
     }
 
     let body = String::from_utf8(body).unwrap();
-
-    println!("Request Body: {}", body);
+    let body = if body.is_empty() { None } else { Some(body) };
 
     let [method, uri] = parse_req_line(&headers);
 
     match method {
-        "GET" => RequestMethods::Get(uri.to_string(), stream),
-        "POST" => RequestMethods::Post(uri.to_string(), stream),
+        "GET" => RequestMethods::Get(uri.to_string(), stream, body),
+        "POST" => RequestMethods::Post(uri.to_string(), stream, body),
         _ => RequestMethods::Other,
     }
 }
