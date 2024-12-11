@@ -1,8 +1,9 @@
 // HTTP parsers, request and response logic
 
+use super::body_parser::parse_body;
 use std::{
     collections::HashMap,
-    io::{BufRead, BufReader, Read, Write},
+    io::{BufRead, BufReader, Write},
     net::TcpStream,
 };
 
@@ -33,7 +34,7 @@ impl<'a> Response<'a> {
         self.stream.write_all(response.as_bytes()).unwrap();
     }
 
-    // TODO: add other response methods like json()
+    // TODO: other response methods e.g json
 }
 
 #[derive(Eq, PartialEq, Hash)]
@@ -42,7 +43,6 @@ pub enum HttpMethod {
     Post(String),
 }
 
-// TODO: find a way to eliminate this and use HttpMethod enum
 pub enum RequestMethods {
     Get(String, Option<String>),
     Post(String, Option<String>),
@@ -71,15 +71,7 @@ pub fn parse_request(stream: &mut TcpStream) -> RequestMethods {
 
     let content_length = parse_content_length(&headers);
 
-    let mut body = vec![0; content_length];
-
-    if content_length > 0 {
-        buf_reader
-            .read_exact(&mut body)
-            .expect("Couldn't read body contents :(");
-    }
-
-    let body = String::from_utf8(body).unwrap();
+    let body = parse_body(&mut buf_reader, content_length);
     let body = if body.is_empty() { None } else { Some(body) };
 
     let [method, uri] = parse_req_line(&headers);
