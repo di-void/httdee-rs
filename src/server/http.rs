@@ -69,12 +69,29 @@ pub fn parse_request(stream: &mut TcpStream) -> RequestMethods {
         headers.push_str(&line);
     }
 
-    let content_length = parse_content_length(&headers);
+    let mut hdrs = headers.lines();
 
-    let body = parse_body(&mut buf_reader, content_length);
+    // "GET / HTTP/1.1"
+    let request_line = hdrs.next();
+
+    // convert headers string to hashmap
+    let mapped_headers = hdrs
+        .map(|x| {
+            let kv = x.split(": ").collect::<Vec<_>>();
+            (kv[0].to_lowercase(), kv[1])
+        })
+        .collect::<HashMap<_, _>>();
+
+    // let content_length = parse_content_length(&headers);
+    let content_length = mapped_headers
+        .get("content-length")
+        .map(|x| x.parse::<u16>().unwrap())
+        .unwrap();
+
+    let body = parse_body(&mut buf_reader, content_length.into());
     let body = if body.is_empty() { None } else { Some(body) };
 
-    let [method, uri] = parse_req_line(&headers);
+    let [method, uri] = parse_req_line(request_line.unwrap());
 
     match method {
         "GET" => RequestMethods::Get(uri.to_string(), body),
@@ -83,21 +100,8 @@ pub fn parse_request(stream: &mut TcpStream) -> RequestMethods {
     }
 }
 
-fn parse_content_length(headers: &String) -> usize {
-    for line in headers.lines() {
-        if line.to_lowercase().starts_with("content-length:") {
-            let length = line["content-length:".len()..].trim().parse().unwrap();
-            return length;
-        }
-    }
-
-    0
-}
-
-fn parse_req_line(headers: &String) -> [&str; 2] {
-    // "GET / HTTP/1.1"
-    let req_line = headers.lines().next().unwrap();
-    let method_and_uri = req_line.split(' ').take(2).collect::<Vec<_>>();
+fn parse_req_line(line: &str) -> [&str; 2] {
+    let method_and_uri = line.split(' ').take(2).collect::<Vec<_>>();
 
     /*
         https://doc.rust-lang.org/book/ch18-02-refutability.html
@@ -108,7 +112,6 @@ fn parse_req_line(headers: &String) -> [&str; 2] {
         destructuring is for arrays and not vecs because
         it involves a fixed size to be guaranteed for the pattern to match
     */
-
     method_and_uri
         .try_into()
         .expect("oops! req line moving mad :(")

@@ -3,6 +3,10 @@ use std::{
     net::TcpStream,
 };
 
+// identify the content-type of the body
+// this info will be used to determine whichi parser will be used
+// tbd...
+
 // return String for now
 pub fn parse_body(reader: &mut BufReader<&mut TcpStream>, content_length: usize) -> String {
     let mut body = vec![0; content_length];
