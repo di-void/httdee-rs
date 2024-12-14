@@ -82,7 +82,6 @@ pub fn parse_request(stream: &mut TcpStream) -> RequestMethods {
         })
         .collect::<HashMap<_, _>>();
 
-    // let content_length = parse_content_length(&headers);
     let content_length = mapped_headers
         .get("content-length")
         .map(|x| x.parse::<u16>().unwrap())
