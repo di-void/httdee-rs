@@ -27,8 +27,6 @@ pub fn _none() -> String {
 
 pub fn _application_json(reader: &mut BufReader<&mut TcpStream>, content_length: usize) -> String {
     // parse application/json
-    // todo!("not yet implemented");
-
     let mut body = vec![0; content_length];
 
     if content_length > 0 {
