@@ -31,14 +31,6 @@ fn test_multiple_parts_form_data() {
     );
 
     todo!("Parser not implemeted yet!");
-
-    // let parser = Parser {};
-    // let result = parser.parse(&input);
-
-    // assert!(result.is_ok());
-    // let parsed = result.unwrap();
-    // assert_eq!(parsed.get("username"), Some(&"JohnDoe".to_string()));
-    // assert_eq!(parsed.get("email"), Some(&"john.doe@example.com".to_string()));
 }
 
 // Test form data with file upload
@@ -55,14 +47,6 @@ fn test_file_upload_form_data() {
     );
 
     todo!("Parser not implemeted yet!");
-
-    // let parser = Parser {};
-    // let result = parser.parse(&input);
-    
-    // assert!(result.is_ok());
-    // let parsed = result.unwrap();
-    // assert_eq!(parsed.get("description"), Some(&"File upload test".to_string()));
-    // // Note: Actual file handling would be more complex and might require a different return type
 }
 
 // Test with malformed input
@@ -76,11 +60,6 @@ fn test_malformed_form_data() {
     );
 
     todo!("Parser not implemeted yet!");
-
-    // let parser = Parser {};
-    // let result = parser.parse(&input);
-    
-    // assert!(result.is_err());
 }
 
 // Test with missing boundary
@@ -89,9 +68,4 @@ fn test_missing_boundary() {
     let input = "Content-Disposition: form-data; name=\"username\"\r\n\r\nJohnDoe";
 
     todo!("Parser not implemeted yet!");
-
-    // let parser = Parser {};
-    // let result = parser.parse(&input);
-    
-    // assert!(result.is_err());
 }
