@@ -12,10 +12,10 @@ use mime::{self, Mime};
 
 // return String for now
 pub fn parse_body(reader: &mut BufReader<&mut TcpStream>, content_length: usize, content_type: Mime) -> String {
-    match (content_type.type_(), content_type.subtype()) {
-        (mime::APPLICATION, mime::JSON) => _application_json(reader, content_length),
-        (mime::TEXT, mime::PLAIN) => _text_plain(reader, content_length),
-        (mime::MULTIPART, mime::FORM_DATA) => _multipart(reader, content_length),
+    match content_type {
+        x if x == mime::APPLICATION_JSON => _application_json(reader, content_length),
+        x if x == mime::TEXT_PLAIN => _text_plain(reader, content_length),
+        x if x == mime::MULTIPART_FORM_DATA => _multipart(reader, content_length),
         _ => _none()
     }
 }
