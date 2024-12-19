@@ -1,12 +1,12 @@
 // HTTP parsers, request and response logic
 
 use super::body_parser::parse_body;
+use mime::Mime;
 use std::{
     collections::HashMap,
     io::{BufRead, BufReader, Write},
     net::TcpStream,
 };
-use mime::Mime;
 
 const HTTP_VERSION: f32 = 1.1;
 
@@ -92,22 +92,22 @@ pub fn parse_request(stream: &mut TcpStream) -> RequestMethods {
         .map(|x| x.parse::<u16>().unwrap())
         .unwrap();
 
-    if let Some(cont_type) = mapped_headers.get("content-type") {
+    let [method, uri] = parse_req_line(request_line.unwrap());
+
+    let mut body: Option<String> = None;
+
+    if let Some(&cont_type) = mapped_headers.get("content-type") {
         let content_type = cont_type.parse::<Mime>().unwrap();
 
-        let body = parse_body(&mut buf_reader, content_length.into(), content_type);
-        let body = if body.is_empty() { None } else { Some(body) };
-
-        let [method, uri] = parse_req_line(request_line.unwrap());
-
-        return match method {
-            "GET" => RequestMethods::Get(uri.to_string(), body),
-            "POST" => RequestMethods::Post(uri.to_string(), body),
-            _ => RequestMethods::Other,
-        }
+        let bdy = parse_body(&mut buf_reader, content_length.into(), content_type);
+        body = if bdy.is_empty() { None } else { Some(bdy) };
     }
 
-    RequestMethods::Other
+    match method {
+        "GET" => RequestMethods::Get(uri.to_string(), body),
+        "POST" => RequestMethods::Post(uri.to_string(), body),
+        _ => RequestMethods::Other,
+    }
 }
 
 fn parse_req_line(line: &str) -> [&str; 2] {
