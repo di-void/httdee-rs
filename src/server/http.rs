@@ -6,6 +6,7 @@ use std::{
     collections::HashMap,
     io::{BufRead, BufReader, Write},
     net::TcpStream,
+    str::Lines,
 };
 
 const HTTP_VERSION: f32 = 1.1;
@@ -80,12 +81,7 @@ pub fn parse_request(stream: &mut TcpStream) -> RequestMethods {
     let request_line = hdrs.next();
 
     // convert headers string to hashmap
-    let mapped_headers = hdrs
-        .map(|x| {
-            let kv = x.split(": ").collect::<Vec<_>>();
-            (kv[0].to_lowercase(), kv[1])
-        })
-        .collect::<HashMap<_, _>>();
+    let mapped_headers = map_headers(hdrs);
 
     let content_length = mapped_headers
         .get("content-length")
@@ -125,4 +121,12 @@ fn parse_req_line(line: &str) -> [&str; 2] {
     method_and_uri
         .try_into()
         .expect("oops! req line moving mad :(")
+}
+
+fn map_headers(hdrs: Lines) -> HashMap<String, &str> {
+    hdrs.map(|x| {
+        let kv = x.split(": ").collect::<Vec<_>>();
+        (kv[0].to_lowercase(), kv[1])
+    })
+    .collect::<HashMap<_, _>>()
 }
