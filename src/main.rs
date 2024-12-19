@@ -1,4 +1,4 @@
-use httpdee_rs::{HttDee, RequestHandlers};
+use httdee_rs::{HttDee, RequestHandlers};
 
 fn main() {
     // define handlers
