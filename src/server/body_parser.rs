@@ -4,10 +4,6 @@ use std::{
     net::TcpStream,
 };
 
-// identify the content-type of the body
-// this info will be used to determine which
-// parsing function will be used organized using pattern matching
-
 // mime docs: https://docs.rs/mime/latest/mime/
 
 // return String for now
