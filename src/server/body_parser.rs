@@ -22,7 +22,7 @@ pub fn parse_body(
 
 pub fn _none() -> String {
     // unsupported type
-    String::from("")
+    String::from("Unsupported content type :|")
 }
 
 pub fn _application_json(reader: &mut BufReader<&mut TcpStream>, content_length: usize) -> String {
@@ -39,8 +39,10 @@ pub fn _application_json(reader: &mut BufReader<&mut TcpStream>, content_length:
 }
 
 pub fn _multipart(_reader: &mut BufReader<&mut TcpStream>, _content_length: usize) -> String {
-    todo!("not yet implemented");
     // parse multipart/form-data
+
+    // get the boundary
+    todo!("not yet implemented");
 }
 
 pub fn _text_plain(_reader: &mut BufReader<&mut TcpStream>, _content_length: usize) -> String {

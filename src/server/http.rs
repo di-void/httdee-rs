@@ -92,11 +92,13 @@ pub fn parse_request(stream: &mut TcpStream) -> RequestMethods {
 
     let mut body: Option<String> = None;
 
-    if let Some(&cont_type) = mapped_headers.get("content-type") {
-        let content_type = cont_type.parse::<Mime>().unwrap();
+    if content_length > 0 {
+        if let Some(&cont_type) = mapped_headers.get("content-type") {
+            let content_type = cont_type.parse::<Mime>().unwrap();
 
-        let bdy = parse_body(&mut buf_reader, content_length.into(), content_type);
-        body = if bdy.is_empty() { None } else { Some(bdy) };
+            let bdy = parse_body(&mut buf_reader, content_length.into(), content_type);
+            body = if bdy.is_empty() { None } else { Some(bdy) };
+        }
     }
 
     match method {
