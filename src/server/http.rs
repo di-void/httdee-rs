@@ -96,7 +96,7 @@ pub fn parse_request(stream: &mut TcpStream) -> RequestMethods {
         if let Some(&cont_type) = mapped_headers.get("content-type") {
             let content_type = cont_type.parse::<Mime>().unwrap();
 
-            let bdy = parse_body(&mut buf_reader, content_length.into(), content_type);
+            let bdy = parse_body(&mut buf_reader, content_length.into(), content_type).unwrap();
             body = if bdy.is_empty() { None } else { Some(bdy) };
         }
     }

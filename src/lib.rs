@@ -1,6 +1,7 @@
 mod server;
 
 pub use server::handler::RequestHandlers;
+pub use server::body_parser;
 use server::http::*;
 use std::{
     collections::HashMap,
