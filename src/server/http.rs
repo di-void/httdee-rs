@@ -57,11 +57,11 @@ pub fn parse_request(stream: &mut TcpStream) -> RequestMethods {
     // extract request body
 
     let mut buf_reader = BufReader::new(stream);
-    let mut headers = String::new();
+    let mut req_data = String::new();
+    let mut line = String::new();
 
-    // parse headers
     loop {
-        let mut line = String::new();
+        line.clear();
         let n_bytes = buf_reader.read_line(&mut line).unwrap();
 
         if n_bytes == 0 {
@@ -72,10 +72,10 @@ pub fn parse_request(stream: &mut TcpStream) -> RequestMethods {
             break;
         }
 
-        headers.push_str(&line);
+        req_data.push_str(&line);
     }
 
-    let mut hdrs = headers.lines();
+    let mut hdrs = req_data.lines();
 
     // "GET / HTTP/1.1"
     let request_line = hdrs.next();
