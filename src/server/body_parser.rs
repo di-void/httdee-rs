@@ -137,9 +137,7 @@ pub fn _multipart<T: Read>(
 
     let parts = parts.into_iter().collect::<String>();
 
-    // println!("Parsed Parts: {}", parts);
     Ok(parts)
-    // Ok(String::from("multipart"))
 }
 
 pub fn _text_plain<T: Read>(
